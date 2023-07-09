@@ -1,6 +1,6 @@
 main:
-  project_name: exercise_14
-  experiment_name: dev
+  project_name: genre_classification_prod
+  experiment_name: prod
   execute_steps:
     - download
     - preprocess
@@ -14,7 +14,9 @@ main:
   random_seed: 42
 data:
   file_url: "https://github.com/udacity/nd0821-c2-build-model-workflow-exercises/blob/master/lesson-2-data-exploration-and-preparation/exercises/exercise_4/starter/genres_mod.parquet?raw=true"
-  reference_dataset: "exercise_14/preprocessed_data.csv:latest"
+  file_name: "raw_data.parquet"
+  dataset_name: "preprocessed_data.csv"
+  artifact_root: "data"
   # Threshold for Kolomorov-Smirnov test
   ks_alpha: 0.05
   test_size: 0.3

@@ -31,7 +31,7 @@ def go(config: DictConfig):
             "main",
             parameters={
                 "file_url": config["data"]["file_url"],
-                "artifact_name": "raw_data.parquet",
+                "artifact_name": config["data"]["file_name"],
                 "artifact_type": "raw_data",
                 "artifact_description": "Data as downloaded"
             },
@@ -40,17 +40,45 @@ def go(config: DictConfig):
     if "preprocess" in steps_to_execute:
 
         ## YOUR CODE HERE: call the preprocess step
-        pass
+         _ = mlflow.run(
+            os.path.join(root_path, "preprocess"),
+            "main",
+            parameters={
+                "input_artifact": f"{config['main']['project_name']}/{config['data']['file_name']}:latest",
+                "artifact_name": config['data']['dataset_name'],
+                "artifact_type": "raw_data",
+                "artifact_description": "Preprocessed data"
+            },
+        )
 
     if "check_data" in steps_to_execute:
 
         ## YOUR CODE HERE: call the check_data step
-        pass
+        _ = mlflow.run(
+            os.path.join(root_path, "check_data"),
+            "main",
+            parameters={
+                "reference_artifact": f"{config['main']['project_name']}/{config['data']['dataset_name']}:latest",
+                "sample_artifact": f"{config['main']['project_name']}/{config['data']['dataset_name']}:latest",
+                "ks_alpha": config["data"]["ks_alpha"],
+            },
+        )
 
     if "segregate" in steps_to_execute:
 
         ## YOUR CODE HERE: call the segregate step
-        pass
+        _ = mlflow.run(
+            os.path.join(root_path, "segregate"),
+            "main",
+            parameters={
+                "input_artifact": f"{config['main']['project_name']}/{config['data']['dataset_name']}:latest",
+                "artifact_root": config["data"]["artifact_root"],
+                "artifact_type": "raw_data",
+                "test_size": config["data"]["test_size"],
+                "random_state": config["main"]["random_seed"],
+                "stratify": config["data"]["stratify"],
+            },
+        )
 
     if "random_forest" in steps_to_execute:
 
@@ -61,12 +89,30 @@ def go(config: DictConfig):
             fp.write(OmegaConf.to_yaml(config["random_forest_pipeline"]))
 
         ## YOUR CODE HERE: call the random_forest step
-        pass
+        _ = mlflow.run(
+            os.path.join(root_path, "random_forest"),
+            "main",
+            parameters={
+                "train_data": f"{config['main']['project_name']}/{config['data']['artifact_root']}_train.csv:latest",
+                "model_config": model_config,
+                "export_artifact": config['random_forest_pipeline']['export_artifact'],
+                "val_size": config["data"]["val_size"],
+                "random_seed": config["main"]["random_seed"],
+                "stratify": config["data"]["stratify"],
+            },
+        )
 
     if "evaluate" in steps_to_execute:
 
         ## YOUR CODE HERE: call the evaluate step
-        pass
+        _ = mlflow.run(
+            os.path.join(root_path, "evaluate"),
+            "main",
+            parameters={
+                "test_data": f"{config['main']['project_name']}/{config['data']['artifact_root']}_test.csv:latest",
+                "model_export": f"{config['main']['project_name']}/{config['random_forest_pipeline']['export_artifact']}:latest",
+            },
+        )
 
 
 if __name__ == "__main__":
